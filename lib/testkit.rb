@@ -1,3 +1,2 @@
-require 'testkit/'
-require 'test-unit'
+#require 'testkit/'
 require 'capybara/driver/headless'

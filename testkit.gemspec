@@ -12,6 +12,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "rails", "~> 3.0.0"
   s.add_runtime_dependency "turn"
   s.add_runtime_dependency "thin"
+  s.add_runtime_dependency "rake", ">= 0.8.7"
   s.add_development_dependency "simplecov"
   s.add_development_dependency "thoughtbot-shoulda"
   s.add_development_dependency "sqlite3"
