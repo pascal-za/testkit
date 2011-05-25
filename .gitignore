@@ -40,3 +40,8 @@ pkg
 #
 # For vim:
 #*.swp
+
+test/rails_app/.bundle
+test/rails_app/db/*.sqlite3
+test/rails_app/log/*.log
+test/rails_app/tmp/
