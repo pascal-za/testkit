@@ -1,13 +1,11 @@
 require 'ripl'
 require 'capybara/driver/headless'
-require 'ansi'
 require 'testkit/server'
 
 module TestKit
   class InitError < Exception; end;
   
   class Session
-    include ANSI::Code
     include TestKit::UI
     
     COMMANDS = {
@@ -18,18 +16,20 @@ module TestKit
       'exit' => 'Terminates the testing session'
     }
   
-    def initialize
-      echo "Booting Webkit..."
-      @browser = WebkitHeadless::Browser.new
-      echo "Booting Application Server..."
-      @server = TestKit::Server.new
-      
-      echo "Type help [command] for more information"
-      COMMANDS.each do |shortcut, description|
-        define_singleton_method(shortcut+'?') { STDOUT.print white, shortcut, reset, ":  #{description}\n" }
+    def initialize(root=Dir.pwd)
+      Dir.chdir(root) do
+        echo "Booting Webkit..."
+        @browser = WebkitHeadless::Browser.new
+        echo "Booting Application Server..."
+        @server = TestKit::Server.new
+        
+        echo "Type help [command] for more information"
+        COMMANDS.each do |shortcut, description|
+          define_singleton_method(shortcut+'?') { STDOUT.print white, shortcut, reset, ":  #{description}\n" }
+        end
+        
+        Ripl.start :binding => instance_eval { binding }, :prompt => 'TestKit Session ['+green+Dir.pwd.sub(/.*\//, '')+reset+"]: "
       end
-      
-      Ripl.start :binding => instance_eval { binding }, :prompt => 'TestKit Session ['+green+Dir.pwd.sub(/.*\//, '')+reset+"]: "
     rescue TestKit::InitError
       exit # Should already be an error from upstream, so just terminate
     end
