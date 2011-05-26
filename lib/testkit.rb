@@ -1,6 +1,7 @@
 require 'capybara/driver/headless'
 require 'ansi'
 require 'timeout'
+require 'active_support/inflector'
 
 module TestKit
   class InitError < Exception; end;
@@ -10,6 +11,13 @@ module TestKit
   
     def echo(message, color=nil)
       STDOUT.print color || white, message, reset, "\n"
+    end
+    
+    def echo_snippet(&block)
+      line = Array.new(80, '-').join
+      puts line
+      yield
+      puts "\n"+line
     end
   end
   
@@ -42,3 +50,4 @@ module TestKit
 end
 
 require 'testkit/session'
+require 'testkit/feature'

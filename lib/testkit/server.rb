@@ -8,21 +8,16 @@ module TestKit
     attr_accessor :port
   
     def initialize
-      @pid_file = Dir.pwd+'/tmp/testkit.pid'
+      @pid_file = Dir.pwd+'/tmp/pids/testkit.pid'
+      @sock_file = Dir.pwd+'/tmp/sockets/testkit.sock'
+      
       check_status
     end
     
     def check_status
-      if File.exists?(@pid_file)
-        @pid = File.read(@pid_file)
-        
-        # Is the server still alive?
-        begin
-          Process.kill('USR1', @pid.to_i)
-        rescue Errno::ESRCH
-          File.unlink(@pid_file)
-          start_server
-        end
+      if File.exists?(@sock_file) && !is_port_available?(File.read(@sock_file).to_i)
+        @pid = File.read(@pid_file).to_i
+        echo "Application server seems to be running fine." if ENV['DEBUG']
       else
         start_server
       end
@@ -36,6 +31,7 @@ module TestKit
           echo "Trying port #{tcp_port}" if ENV['DEBUG']
           is_port_available?(tcp_port) or raise
           @port = tcp_port
+
         end
         unless @port
           echo "BUG: Cannot detect an available TCP port to bind to, for now specify one manually in config.yml", red
@@ -44,7 +40,7 @@ module TestKit
       end
       
       `thin --port #{@port} --pid #{@pid_file} --daemonize start`
-      
+            
       begin
         TestKit.wait_for(false, 30) do
           is_port_available?(@port)
@@ -53,12 +49,7 @@ module TestKit
         echo "The application server failed to start, check your log to see why.", red
         raise TestKit::InitError
       end
-      
-      start = Time.now.to_f
-      begin
-        puts (Time.now.to_f-start)
-        sleep 0.1
-      end until File.exists?(@pid_file)
+      File.open(@sock_file, 'w') { |f| f.write(@port.to_s) }
     end
     
     def is_port_available?(port)

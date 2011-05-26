@@ -16,7 +16,9 @@ module TestKit
       'exit' => 'Terminates the testing session'
     }
   
-    def initialize(root=Dir.pwd)
+    def initialize(root=Dir.pwd, features_root=Dir.pwd+'/test/integration/')
+      @features_root = features_root
+      
       Dir.chdir(root) do
         echo "Booting Webkit..."
         @browser = WebkitHeadless::Browser.new
@@ -32,6 +34,34 @@ module TestKit
       end
     rescue TestKit::InitError
       exit # Should already be an error from upstream, so just terminate
+    end
+
+    
+    def a
+      Dir[@features_root+'**/*.rb'].each do |feature_file|
+        f(feature_file.match(/\/([^\/]*)\.rb/)[1])
+      end
+      true
+    end
+    
+    def f(feature)
+      feature_file = "#{@features_root}/#{feature}.rb"
+    
+      begin
+        load(feature_file)
+      rescue LoadError
+        echo feature_file+' does not exist', red
+        return false
+      end
+      
+      begin
+        feature_klass = feature.classify.constantize
+      rescue NameError
+        echo "Congrats, you have #{feature_file}.\nNow, go define class #{feature.classify} < TestKit::Feature in it.", yellow
+        return false
+      end        
+      echo feature_klass.to_s+"\n", bold
+      feature_klass.new(@browser, "http://localhost:#{@port}/").run
     end
     
     def help(*args)
