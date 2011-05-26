@@ -15,5 +15,7 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'testkit'
 
+#require File.join(File.dirname(__FILE__), 'rails_app', 'config', 'environment')
+
 class Test::Unit::TestCase
 end
